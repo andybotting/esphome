@@ -33,6 +33,7 @@ std::string CurrentTempGetResponsePacket::to_string() const {
           "\n Temp:" + std::to_string(get_current_temp()) +
           " Outdoor:" + (std::isnan(get_outdoor_temp()) ? "Unsupported" : std::to_string(get_outdoor_temp())));
 }
+
 std::string SettingsGetResponsePacket::to_string() const {
   return ("Settings Response: " + Packet::to_string() + CONSOLE_COLOR_PURPLE + "\n Fan:" + format_hex(get_fan()) +
           " Mode:" + format_hex(get_mode()) + " Power:" +
@@ -50,6 +51,13 @@ std::string RunStateGetResponsePacket::to_string() const {
           " Preheat:" + (in_preheat() ? "Yes" : "No") + " Standby:" + (in_standby() ? "Yes" : "No") +
           " ActualFan:" + ACTUAL_FAN_SPEED_NAMES[get_actual_fan_speed()] + " (" +
           std::to_string(get_actual_fan_speed()) + ")" + " AutoMode:" + format_hex(get_auto_mode()));
+}
+std::string ZonesGetResponsePacket::to_string() const {
+  return ("Zones Response: " + Packet::to_string() + CONSOLE_COLOR_PURPLE +
+          "\n Zone 0:" + (zone_active(0) ? "Yes" : "No") + " Zone 1:" + (zone_active(1) ? "Yes" : "No") +
+          " Zone 2:" + (zone_active(2) ? "Yes" : "No") + " Zone 3:" + (zone_active(3) ? "Yes" : "No") +
+          " Zone 4:" + (zone_active(4) ? "Yes" : "No") + " Zone 5:" + (zone_active(5) ? "Yes" : "No") +
+          " Zone 6:" + (zone_active(6) ? "Yes" : "No") + " Zone 7:" + (zone_active(7) ? "Yes" : "No"));
 }
 std::string StatusGetResponsePacket::to_string() const {
   return ("Status Response: " + Packet::to_string() + CONSOLE_COLOR_PURPLE + "\n CompressorFrequency: " +
@@ -183,6 +191,13 @@ RemoteTemperatureSetRequestPacket &RemoteTemperatureSetRequestPacket::use_intern
 SetRunStatePacket &SetRunStatePacket::set_filter_reset(bool do_reset) {
   pkt_.set_payload_byte(PLINDEX_FILTER_RESET, do_reset ? 1 : 0);
   set_flags(0x01);
+  return *this;
+}
+
+// SetZonesStatePacket functions
+SetZonesStatePacket &SetZonesStatePacket::set_zone(uint8_t zone, bool state) {
+  pkt_.set_payload_byte(PLINDEX_ZONE_NUMBER, 1 << zone);
+  pkt_.set_payload_byte(PLINDEX_ZONE_STATE + zone, state ? 1 : 0);
   return *this;
 }
 

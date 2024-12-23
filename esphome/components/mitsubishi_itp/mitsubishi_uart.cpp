@@ -341,5 +341,16 @@ void MitsubishiUART::reset_filter_status() {
   hp_bridge_.send_packet(pkt);
 }
 
+bool MitsubishiUART::set_zone(const uint8_t &zone, bool &state) {
+  ESP_LOGI(TAG, "Received a request to set zone %d to %s.", zone, state ? "on" : "off");
+
+  IFNOTACTIVE(return false;)
+
+  SetZonesStatePacket pkt = SetZonesStatePacket();
+  pkt.set_zone(zone, state);
+  hp_bridge_.send_packet(pkt);
+  return true;
+}
+
 }  // namespace mitsubishi_itp
 }  // namespace esphome

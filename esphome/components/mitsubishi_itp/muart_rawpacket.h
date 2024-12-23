@@ -35,6 +35,7 @@ enum class GetCommand : uint8_t {
   ERROR_INFO = 0x04,
   STATUS = 0x06,
   RUN_STATE = 0x09,
+  ZONES = 0x15,
   A_9 = 0xa9
 };
 
@@ -43,6 +44,7 @@ enum class SetCommand : uint8_t {
   SETTINGS = 0x01,
   REMOTE_TEMPERATURE = 0x07,
   RUN_STATE = 0x08,
+  ZONES = 0x15,
   THERMOSTAT_HELLO = 0xa7
 };
 

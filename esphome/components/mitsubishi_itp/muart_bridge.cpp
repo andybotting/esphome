@@ -170,6 +170,9 @@ void MUARTBridge::classify_and_process_raw_packet_(RawPacket &pkt) const {
         case GetCommand::RUN_STATE:
           process_raw_packet_<RunStateGetResponsePacket>(pkt, false);
           break;
+        case GetCommand::ZONES:
+          process_raw_packet_<ZonesGetResponsePacket>(pkt, false);
+          break;
         case GetCommand::STATUS:
           process_raw_packet_<StatusGetResponsePacket>(pkt, false);
           break;

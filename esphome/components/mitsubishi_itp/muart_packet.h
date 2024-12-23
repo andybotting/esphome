@@ -171,6 +171,10 @@ class GetRequestPacket : public Packet {
     static GetRequestPacket instance = GetRequestPacket(GetCommand::ERROR_INFO);
     return instance;
   }
+  static GetRequestPacket &get_zones_instance() {
+    static GetRequestPacket instance = GetRequestPacket(GetCommand::ZONES);
+    return instance;
+  }
   using Packet::Packet;
 
  private:
@@ -259,6 +263,15 @@ class ErrorStateGetResponsePacket : public Packet {
 
   bool error_present() const { return get_error_code() != 0x8000 || get_raw_short_code() != 0x00; }
 
+  std::string to_string() const override;
+};
+
+class ZonesGetResponsePacket : public Packet {
+  static const int PLINDEX_ZONE = 3;
+  using Packet::Packet;
+
+ public:
+  bool zone_active(int zone) const { return pkt_.get_payload_byte(PLINDEX_ZONE + zone) == 0; }
   std::string to_string() const override;
 };
 
@@ -386,6 +399,21 @@ class SetRunStatePacket : public Packet {
   SetRunStatePacket &set_filter_reset(bool do_reset);
 };
 
+class SetZonesStatePacket : public Packet {
+  static const uint8_t PLINDEX_ZONE_NUMBER = 3;
+  static const uint8_t PLINDEX_ZONE_STATE = 4;
+
+  using Packet::Packet;
+
+ public:
+  SetZonesStatePacket() : Packet(RawPacket(PacketType::SET_REQUEST, 10)) {
+    pkt_.set_payload_byte(0, static_cast<uint8_t>(SetCommand::ZONES));
+  }
+
+  //bool get_zone() { return pkt_.get_payload_byte(PLINDEX_FILTER_RESET) != 0; };
+  SetZonesStatePacket &set_zone(uint8_t zone, bool state);
+};
+
 // Sent by MHK2 but with no response; defined to allow setResponseExpected(false)
 class ThermostatHelloRequestPacket : public Packet {
   using Packet::Packet;
@@ -424,6 +452,7 @@ class PacketProcessor {
   virtual void process_packet(const CurrentTempGetResponsePacket &packet){};
   virtual void process_packet(const StatusGetResponsePacket &packet){};
   virtual void process_packet(const RunStateGetResponsePacket &packet){};
+  virtual void process_packet(const ZonesGetResponsePacket &packet){};
   virtual void process_packet(const ErrorStateGetResponsePacket &packet){};
   virtual void process_packet(const RemoteTemperatureSetRequestPacket &packet){};
   virtual void process_packet(const SetResponsePacket &packet){};

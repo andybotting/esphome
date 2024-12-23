@@ -310,6 +310,18 @@ void MitsubishiUART::process_packet(const RunStateGetResponsePacket &packet) {
   // TODO: Not sure what AutoMode does yet
 }
 
+void MitsubishiUART::process_packet(const ZonesGetResponsePacket &packet) {
+  ESP_LOGV(TAG, "Processing %s", packet.to_string().c_str());
+  route_packet_(packet);
+
+  // Loop over all zones and update the switch states
+  for (int i = 0; i < MUART_MAX_ZONES; i++) {
+    const bool old_zone_state = zone_switches_[i]->state;
+    zone_switches_[i]->state = packet.zone_active(i);
+    publish_on_update_ |= (old_zone_state != zone_switches_[i]->state);
+  }
+}
+
 void MitsubishiUART::process_packet(const ErrorStateGetResponsePacket &packet) {
   ESP_LOGV(TAG, "Processing %s", packet.to_string().c_str());
   route_packet_(packet);

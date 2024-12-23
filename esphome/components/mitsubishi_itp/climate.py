@@ -8,6 +8,7 @@ from esphome.components import (
     button,
     text_sensor,
     select,
+    switch,
 )
 from esphome.const import (
     CONF_CUSTOM_FAN_MODES,
@@ -36,6 +37,7 @@ AUTO_LOAD = [
     "binary_sensor",
     "button",
     "text_sensor",
+    "switch",
 ]
 DEPENDENCIES = [
     "uart",
@@ -45,6 +47,7 @@ DEPENDENCIES = [
     "button",
     "text_sensor",
     "select",
+    "switch",
 ]
 
 CONF_UART_HEATPUMP = "uart_heatpump"
@@ -61,6 +64,16 @@ CONF_HORIZONTAL_VANE_POSITION_SELECT = "horizontal_vane_position_select"
 
 CONF_BUTTONS = "buttons"
 CONF_FILTER_RESET_BUTTON = "filter_reset_button"
+
+CONF_SWITCHES = "switches"
+CONF_ZONE_0_SWITCH = "zone_0_switch"
+CONF_ZONE_1_SWITCH = "zone_1_switch"
+CONF_ZONE_2_SWITCH = "zone_2_switch"
+CONF_ZONE_3_SWITCH = "zone_3_switch"
+CONF_ZONE_4_SWITCH = "zone_4_switch"
+CONF_ZONE_5_SWITCH = "zone_5_switch"
+CONF_ZONE_6_SWITCH = "zone_6_switch"
+CONF_ZONE_7_SWITCH = "zone_7_switch"
 
 CONF_TEMPERATURE_SOURCES = (
     "temperature_sources"  # This is for specifying additional sources
@@ -86,6 +99,15 @@ HorizontalVanePositionSelect = mitsubishi_itp_ns.class_(
 FilterResetButton = mitsubishi_itp_ns.class_(
     "FilterResetButton", button.Button, cg.Component
 )
+
+Zone0Switch = mitsubishi_itp_ns.class_("Zone0Switch", switch.Switch, cg.Component)
+Zone1Switch = mitsubishi_itp_ns.class_("Zone1Switch", switch.Switch, cg.Component)
+Zone2Switch = mitsubishi_itp_ns.class_("Zone2Switch", switch.Switch, cg.Component)
+Zone3Switch = mitsubishi_itp_ns.class_("Zone3Switch", switch.Switch, cg.Component)
+Zone4Switch = mitsubishi_itp_ns.class_("Zone4Switch", switch.Switch, cg.Component)
+Zone5Switch = mitsubishi_itp_ns.class_("Zone5Switch", switch.Switch, cg.Component)
+Zone6Switch = mitsubishi_itp_ns.class_("Zone6Switch", switch.Switch, cg.Component)
+Zone7Switch = mitsubishi_itp_ns.class_("Zone7Switch", switch.Switch, cg.Component)
 
 DEFAULT_CLIMATE_MODES = ["OFF", "HEAT", "DRY", "COOL", "FAN_ONLY", "HEAT_COOL"]
 DEFAULT_FAN_MODES = ["AUTO", "QUIET", "LOW", "MEDIUM", "HIGH"]
@@ -282,12 +304,56 @@ BUTTONS_SCHEMA = cv.All(
     }
 )
 
+SWITCHES = {
+    CONF_ZONE_0_SWITCH: (
+        "Zone 0",
+        switch.switch_schema(Zone0Switch, entity_category=ENTITY_CATEGORY_CONFIG),
+    ),
+    CONF_ZONE_1_SWITCH: (
+        "Zone 1",
+        switch.switch_schema(Zone1Switch, entity_category=ENTITY_CATEGORY_CONFIG),
+    ),
+    CONF_ZONE_2_SWITCH: (
+        "Zone 2",
+        switch.switch_schema(Zone2Switch, entity_category=ENTITY_CATEGORY_CONFIG),
+    ),
+    CONF_ZONE_3_SWITCH: (
+        "Zone 3",
+        switch.switch_schema(Zone3Switch, entity_category=ENTITY_CATEGORY_CONFIG),
+    ),
+    CONF_ZONE_4_SWITCH: (
+        "Zone 4",
+        switch.switch_schema(Zone4Switch, entity_category=ENTITY_CATEGORY_CONFIG),
+    ),
+    CONF_ZONE_5_SWITCH: (
+        "Zone 5",
+        switch.switch_schema(Zone5Switch, entity_category=ENTITY_CATEGORY_CONFIG),
+    ),
+    CONF_ZONE_6_SWITCH: (
+        "Zone 6",
+        switch.switch_schema(Zone6Switch, entity_category=ENTITY_CATEGORY_CONFIG),
+    ),
+    CONF_ZONE_7_SWITCH: (
+        "Zone 7",
+        switch.switch_schema(Zone7Switch, entity_category=ENTITY_CATEGORY_CONFIG),
+    ),
+}
+
+SWITCHES_SCHEMA = cv.All(
+    {
+        cv.Optional(
+            switch_designator, default={"name": f"{switch_name}"}
+        ): switch_schema
+        for switch_designator, (switch_name, switch_schema) in SWITCHES.items()
+    }
+)
 
 CONFIG_SCHEMA = BASE_SCHEMA.extend(
     {
         cv.Optional(CONF_SENSORS, default={}): SENSORS_SCHEMA,
         cv.Optional(CONF_SELECTS, default={}): SELECTS_SCHEMA,
         cv.Optional(CONF_BUTTONS, default={}): BUTTONS_SCHEMA,
+        cv.Optional(CONF_SWITCHES, default={}): SWITCHES_SCHEMA,
     }
 )
 
@@ -386,6 +452,13 @@ async def to_code(config):
         button_component = await button.new_button(button_conf)
         await cg.register_component(button_component, button_conf)
         await cg.register_parented(button_component, muart_component)
+
+    # Switches
+    for switch_designator, (_, _) in SWITCHES.items():
+        switch_conf = config[CONF_SWITCHES][switch_designator]
+        switch_component = await switch.new_switch(switch_conf)
+        await cg.register_component(switch_component, switch_conf)
+        await cg.register_parented(switch_component, muart_component)
 
     # Debug Settings
     if dam_conf := config.get(CONF_DISABLE_ACTIVE_MODE):

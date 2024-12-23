@@ -27,6 +27,8 @@ const uint32_t TEMPERATURE_SOURCE_TIMEOUT_MS = 420000;  // (7min) The heatpump w
 
 const std::string TEMPERATURE_SOURCE_THERMOSTAT = "Thermostat";
 
+const uint8_t MUART_MAX_ZONES = 8;  // Only 8 zones supported by the heatpump
+
 // These are named to match with set fan speeds where possible.  "Very Low" is a special speed
 // for e.g. preheating or thermal off
 const std::array<std::string, 7> ACTUAL_FAN_SPEED_NAMES = {"Off",  "Very Low",        "Low",  "Medium",
@@ -95,6 +97,9 @@ class MitsubishiUART : public PollingComponent, public climate::Climate, public 
   // Button triggers
   void reset_filter_status();
 
+  // Switch setters
+  bool set_zone(const uint8_t &zone, bool &state);
+
   // Turns on or off actively sending packets
   void set_active_mode(const bool active) { active_mode_ = active; };
 
@@ -111,6 +116,7 @@ class MitsubishiUART : public PollingComponent, public climate::Climate, public 
   void process_packet(const CurrentTempGetResponsePacket &packet) override;
   void process_packet(const StatusGetResponsePacket &packet) override;
   void process_packet(const RunStateGetResponsePacket &packet) override;
+  void process_packet(const ZonesGetResponsePacket &packet) override;
   void process_packet(const ErrorStateGetResponsePacket &packet) override;
   void process_packet(const RemoteTemperatureSetRequestPacket &packet) override;
   void process_packet(const SetResponsePacket &packet) override;
@@ -177,6 +183,9 @@ class MitsubishiUART : public PollingComponent, public climate::Climate, public 
   select::Select *temperature_source_select_;
   select::Select *vane_position_select_;
   select::Select *horizontal_vane_position_select_;
+
+  // Switches
+  switch_::Switch* zone_switches_[MUART_MAX_ZONES];
 
   // Temperature select extras
   std::map<std::string, size_t> temp_select_map_;  // Used to map strings to indexes for preference storage
